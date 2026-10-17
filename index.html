@@ -98,6 +98,9 @@ legend small{font-weight:400;color:var(--muted);font-size:.8rem}
 .yen input{width:8.5em;font-size:1.15rem;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font-variant-numeric:tabular-nums;text-align:right}
 input:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 input[type=text]{font-size:1rem;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);width:100%}
+.fld{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:700}
+.fld select{font:inherit;font-weight:400;font-size:1rem;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);min-height:46px}
+.fld input{font-weight:400}
 .scope{font-size:.82rem;padding:8px 10px;border-radius:8px;background:var(--surface);border:1px dashed var(--line)}
 .scope b{color:var(--accent)}
 
@@ -265,8 +268,46 @@ table.br td small{display:block;font-weight:400;color:var(--muted);font-size:.75
       </fieldset>
 
       <fieldset>
-        <legend>お渡し用シート <small>印刷・画像にするときのお名前</small></legend>
-        <input type="text" id="patient" placeholder="患者様のお名前（任意）">
+        <legend><span class="step">9</span>臨時の訪問 <small>在宅患者緊急訪問薬剤管理指導料（医療保険）</small></legend>
+        <label class="toggle"><input type="checkbox" id="emOn"> 臨時の訪問を見込みに含める</label>
+        <div class="sub-box" id="emBox" hidden>
+          <h3>区分</h3>
+          <div class="chips" data-chips="emType">
+            <button type="button" data-v="2" class="on">緊急訪問2<small id="emP2">200点・1以外</small></button>
+            <button type="button" data-v="1">緊急訪問1<small id="emP1">500点・対象疾患の急変</small></button>
+          </div>
+          <h3>月の回数（見込み）</h3>
+          <div class="stepper">
+            <button type="button" id="emMinus" aria-label="臨時の訪問を1回減らす">−</button>
+            <output id="emOut">1<small>回</small></output>
+            <button type="button" id="emPlus" aria-label="臨時の訪問を1回増やす">＋</button>
+          </div>
+          <div id="emRateRow">
+            <h3>医療保険の負担割合 <small class="hint" style="margin:0">保険証・高齢受給者証の割合</small></h3>
+            <div class="chips" data-chips="emRate">
+              <button type="button" data-v="1" class="on">1割</button>
+              <button type="button" data-v="2">2割</button>
+              <button type="button" data-v="3">3割</button>
+            </div>
+          </div>
+          <p class="hint" style="margin:0">主治医以外の医師（在宅療養を担う医師と連携する医師）の求めや、急な体調変化で臨時に訪問した場合です。介護保険の方も、この訪問は医療保険で算定し、お薬代と一緒にお支払いいただきます。定期の訪問と合わせて月4回まで（末期がん・麻薬注射の方は月8回まで）。</p>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>お渡し用シート <small>印刷・画像にするときの記載事項</small></legend>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label class="fld">店舗
+            <select id="store">
+              <option value="0">薬局らくらくファーマシー</option>
+              <option value="1">薬局らくらくファーマシーウエスト</option>
+              <option value="2">らくらく薬局 苦楽園口店</option>
+            </select>
+          </label>
+          <p class="hint" id="storeInfo" style="margin:-4px 0 0"></p>
+          <label class="fld">担当薬剤師<input type="text" id="pharmacist" placeholder="例）楽々 太郎"></label>
+          <label class="fld">患者様のお名前（任意）<input type="text" id="patient" placeholder="例）宝塚 花子"></label>
+        </div>
       </fieldset>
 
       <details class="set">
@@ -287,7 +328,9 @@ table.br td small{display:block;font-weight:400;color:var(--muted);font-size:.75
           <label>麻薬管理指導加算<input id="i4" inputmode="numeric"></label>
           <label>麻薬持続注射療法加算<input id="i6" inputmode="numeric"></label>
           <label>中心静脈栄養法加算<input id="i7" inputmode="numeric"></label>
-          <label style="grid-column:1/-1">薬局名（シートに印字）<input id="pharmacy" type="text" placeholder="例）〇〇薬局 △△店 TEL 000-000-0000"></label>
+          <h4>在宅患者緊急訪問薬剤管理指導料（点/回）</h4>
+          <label>緊急訪問1<input id="e1" inputmode="numeric"></label>
+          <label>緊急訪問2<input id="e2" inputmode="numeric"></label>
         </div>
         <p class="hint">初期値：介護は令和6年度介護報酬改定、医療は令和8年度調剤報酬改定の点数。改定時はここを書き換えてください。この端末に保存されます。</p>
       </details>
@@ -303,7 +346,7 @@ table.br td small{display:block;font-weight:400;color:var(--muted);font-size:.75
         </div>
         <table class="br">
           <tr><th id="rVisitLabel">訪問（介護保険）</th><td id="rVisit"></td></tr>
-          <tr id="rDrugRow"><th>お薬代（医療保険）</th><td id="rDrug"></td></tr>
+          <tr id="rDrugRow"><th id="rDrugLabel">お薬代（医療保険）</th><td id="rDrug"></td></tr>
           <tr id="rKouhiRow"><th>国の公費</th><td id="rKouhi"></td></tr>
           <tr id="rFukuRow"><th>福祉医療</th><td id="rFuku"></td></tr>
           <tr><th>1回あたりの訪問負担</th><td id="rPer"></td></tr>
@@ -332,7 +375,8 @@ table.br td small{display:block;font-weight:400;color:var(--muted);font-size:.75
         <li>福祉医療の受給者証をお持ちの方は、<b>福祉医療</b>でお住まいの市（宝塚市・西宮市・その他）を選ぶと、その市の制度名が並びます。制度を選び、一般か低所得かを選びます。国の公費と同時に選べます。選んだ市はその端末に記憶されます。</li>
         <li><b>お薬代</b>は、分かれば公費を使う前の月額（保険の負担割合での額）を入力します。空欄でも、公費・福祉医療の上限から「最大いくらか」を表示します。</li>
         <li>右側（iPhoneでは画面下）に<b>ひと月のお支払いの目安</b>が表示されます。画面を患者様に見せながら説明します。</li>
-        <li>控えが必要な方には<b>「お渡し用シートを作る」</b>で書面を作ります。</li>
+        <li>主治医以外の医師の指示などで臨時の訪問が見込まれる方は、<b>臨時の訪問</b>をオンにして区分と回数を選びます。オフのままでも、お渡し用シートに注意書きが入ります。</li>
+        <li>控えが必要な方には、<b>店舗</b>と<b>担当薬剤師</b>を確認して<b>「お渡し用シートを作る」</b>で書面を作ります（店舗と担当薬剤師はその端末に記憶されます）。</li>
       </ol>
     </section>
     <section>
@@ -402,15 +446,26 @@ table.br td small{display:block;font-weight:400;color:var(--muted);font-size:.75
   const val=name=>{const el=document.querySelector('input[name="'+name+'"]:checked');return el?el.value:null;};
 
   /* ---------- 設定 ---------- */
-  const DEF={k1:518,k2:379,k3:342,k4:100,k5:250,k6:150,kyen:10,i1:650,i2:320,i3:290,i4:100,i6:250,i7:150,pharmacy:""};
+  const DEF={k1:518,k2:379,k3:342,k4:100,k5:250,k6:150,kyen:10,i1:650,i2:320,i3:290,i4:100,i6:250,i7:150,e1:500,e2:200};
   const KEY="kyotaku-ryokin-settings-v2";
   let cfg=Object.assign({},DEF);
   try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)cfg=Object.assign(cfg,s);}catch(e){}
   Object.keys(DEF).forEach(k=>{$(k).value=cfg[k];});
   function saveCfg(){
-    Object.keys(DEF).forEach(k=>{if(k==="pharmacy"){cfg[k]=$(k).value;return;}const v=num($(k).value);cfg[k]=v==null?DEF[k]:v;});
+    Object.keys(DEF).forEach(k=>{const v=num($(k).value);cfg[k]=v==null?DEF[k]:v;});
     try{localStorage.setItem(KEY,JSON.stringify(cfg));}catch(e){}
   }
+
+  /* ---------- 店舗 ---------- */
+  const STORES=[
+    {name:"薬局らくらくファーマシー",zip:"〒665-0061",addr:"宝塚市仁川北2-6-10 サンローゼ仁川",tel:"0798-54-1338"},
+    {name:"薬局らくらくファーマシーウエスト",zip:"〒665-0061",addr:"宝塚市仁川北3-7-3",tel:"0798-42-8808"},
+    {name:"らくらく薬局 苦楽園口店",zip:"〒662-0074",addr:"西宮市石刎町1-18",tel:"0798-31-7177"}
+  ];
+  const PREF_KEY="kyotaku-ryokin-staff";
+  try{const p=JSON.parse(localStorage.getItem(PREF_KEY)||"null");if(p){if(STORES[p.store])$("store").value=String(p.store);if(p.pharmacist)$("pharmacist").value=p.pharmacist;}}catch(e){}
+  const saveStaff=()=>{try{localStorage.setItem(PREF_KEY,JSON.stringify({store:+$("store").value,pharmacist:$("pharmacist").value}));}catch(e){}};
+  const STORE=()=>STORES[+$("store").value]||STORES[0];
 
   /* ---------- 国の公費 ----------
      kaigo: 介護保険の居宅療養管理指導が対象か / iryo: true=医療保険すべて, "drug"=お薬代のみ */
@@ -484,7 +539,7 @@ table.br td small{display:block;font-weight:400;color:var(--muted);font-size:.75
   document.querySelector('input[name="city"][value="'+city+'"]').checked=true;
   const FUKU_LIST=()=>FUKU_BY_CITY[city];
 
-  const st={count:2,kouhi:"none",cap:null,otherScope:"both",fuku:"none",fper:0,flimit:2,fcap:null,fmcap:"",days:2,daysTouched:false};
+  const st={em:1,emType:2,emRate:1,count:2,kouhi:"none",cap:null,otherScope:"both",fuku:"none",fper:0,flimit:2,fcap:null,fmcap:"",days:2,daysTouched:false};
   const K=()=>KOUHI.find(k=>k.id===st.kouhi);
   const F=()=>FUKU_LIST().find(f=>f.id===st.fuku)||NONE;
 
@@ -562,15 +617,22 @@ table.br td small{display:block;font-weight:400;color:var(--muted);font-size:.75
       const g=g1*st.count; V=g-Math.floor(g*(10-r)/10);
     }
     let Kv=isIryo?0:V, IV=isIryo?V:0, Dd=D;
+    // 臨時の訪問（在宅患者緊急訪問薬剤管理指導料・医療保険）
+    const emOn=$("emOn").checked, emPts=emOn?(st.emType===1?cfg.e1:cfg.e2):0;
+    const covE=k.id!=="none"&&(k.custom?true:k.iryo===true);
+    const er=isIryo?r:((covE&&k.rateMax)?Math.min(st.emRate,k.rateMax):st.emRate);
+    const emPer=emOn?Math.round(emPts*10*er/10/10)*10:0;
+    let E=emPer*(emOn?st.em:0); const E0=E;
     // 国の公費
-    if(k.type==="zero"){ if(covK)Kv=0; if(covIV)IV=0; if(covD)Dd=0; perVisit=(covK||covIV)?0:perVisit; }
+    if(k.type==="zero"){ if(covK)Kv=0; if(covIV)IV=0; if(covE)E=0; if(covD)Dd=0; perVisit=(covK||covIV)?0:perVisit; }
     else if(k.type==="cap"){
       let C=st.cap??0;
       if(covK){Kv=Math.min(Kv,C);C-=Kv;}
       if(covIV){IV=Math.min(IV,C);C-=IV;}
+      if(covE){E=Math.min(E,C);C-=E;}
       if(covD){Dd=Math.min(Dd,C);}
     }
-    let M=IV+Dd; const Mbefore=M;
+    let M=IV+E+Dd; const Mbefore=M;
     // 福祉医療（医療保険分のみ）
     let fTxt="";
     if(f.type==="visit"){
@@ -587,7 +649,7 @@ table.br td small{display:block;font-weight:400;color:var(--muted);font-size:.75
     let kTxt="";
     if(k.type==="zero")kTxt="公費で自己負担なし";
     else if(k.type==="cap")kTxt="月 "+fmt(st.cap??0)+"円まで"+((covK||covIV)?"（訪問＋お薬代）":"（お薬代）");
-    return {mode,isIryo,r0,r,unitsPer,perVisit,V,Kv,M,Mbefore,total:Kv+M,k,f,kTxt,fTxt,covK};
+    return {emOn,emPts,emPer,E0,er,mode,isIryo,r0,r,unitsPer,perVisit,V,Kv,M,Mbefore,total:Kv+M,k,f,kTxt,fTxt,covK};
   }
 
   const MODE={kaigo:"要介護",yobo:"要支援",iryo:"介護認定なし"};
@@ -631,15 +693,18 @@ table.br td small{display:block;font-weight:400;color:var(--muted);font-size:.75
     if(o.isIryo){
       $("rVisitLabel").textContent="訪問＋お薬代（医療保険）";
       o.visitTxt=o.exact?fmt(o.M)+"円":(o.plus?(o.max!=null?fmt(o.M)+"円〜最大 "+fmt(o.mMax)+"円":fmt(o.M)+"円＋お薬代"):fmt(o.M)+"円");
-      $("rVisit").innerHTML=esc(o.visitTxt)+"<small>訪問 "+fmt(o.unitsPer)+"点 × "+st.count+"回</small>";
+      $("rVisit").innerHTML=esc(o.visitTxt)+"<small>訪問 "+fmt(o.unitsPer)+"点 × "+st.count+"回"+(o.emOn?"＋臨時 "+fmt(o.emPts)+"点 × "+st.em+"回":"")+"</small>";
       $("rDrugRow").hidden=true; o.drugTxt=null;
     }else{
       $("rVisitLabel").textContent="訪問（介護保険）";
       o.visitTxt=fmt(o.Kv)+"円"+(o.Kv<o.V?"（公費適用後）":"");
       $("rVisit").innerHTML=esc(o.visitTxt)+"<small>"+fmt(o.unitsPer)+"単位 × "+st.count+"回</small>";
       $("rDrugRow").hidden=false;
-      o.drugTxt=o.exact?fmt(o.M)+"円"+(o.M<o.Mbefore?"（公費・福祉適用後）":""):(isFinite(o.mMax)?(o.mMax===0?"0円":"最大 "+fmt(o.mMax)+"円"):"別途（医療保険）");
-      $("rDrug").textContent=o.drugTxt;
+      $("rDrugLabel").textContent=o.emOn?"臨時の訪問＋お薬代（医療保険）":"お薬代（医療保険）";
+      if(o.exact) o.drugTxt=fmt(o.M)+"円"+(o.M<o.Mbefore?"（公費・福祉適用後）":"");
+      else if(o.emOn) o.drugTxt=isFinite(o.mMax)?(o.mMax===o.M?fmt(o.M)+"円":fmt(o.M)+"円〜最大 "+fmt(o.mMax)+"円"):fmt(o.M)+"円＋お薬代";
+      else o.drugTxt=isFinite(o.mMax)?(o.mMax===0?"0円":"最大 "+fmt(o.mMax)+"円"):"別途（医療保険）";
+      $("rDrug").innerHTML=esc(o.drugTxt)+(o.emOn?"<small>臨時 "+fmt(o.emPts)+"点 × "+st.em+"回（"+o.er+"割 "+fmt(o.E0)+"円）</small>":"");
     }
     $("rKouhiRow").hidden=k.id==="none";
     $("rKouhi").innerHTML=esc(codeName(k))+"<small>"+esc(o.kTxt)+"</small>";
@@ -647,7 +712,12 @@ table.br td small{display:block;font-weight:400;color:var(--muted);font-size:.75
     $("rFuku").innerHTML=esc(codeName(f)+(city==="other"?"":"（"+CITY[city]+"）"))+"<small>"+esc(o.fTxt)+"</small>";
     $("rPer").textContent=fmt(o.perVisit)+"円";
     $("barV").textContent=fmt(o.main)+"円"+(o.plus?"＋お薬代":"")+(o.max!=null?"（最大"+fmt(o.max)+"円）":"");
-    $("pharmacyLabel").textContent=cfg.pharmacy||"居宅療養管理指導費・在宅患者訪問薬剤管理指導料の月額目安";
+    $("pharmacyLabel").textContent=STORE().name;
+    $("storeInfo").textContent=STORE().zip+" "+STORE().addr+"　TEL "+STORE().tel;
+    $("emBox").hidden=!$("emOn").checked;
+    $("emRateRow").hidden=o.isIryo;
+    $("emOut").innerHTML=st.em+"<small>回</small>";
+    $("emP1").textContent=fmt(cfg.e1)+"点・対象疾患の急変";$("emP2").textContent=fmt(cfg.e2)+"点・1以外";
     buildSheet(o);
   }
 
@@ -667,21 +737,25 @@ table.br td small{display:block;font-weight:400;color:var(--muted);font-size:.75
     if(adds.length) rows.splice(4,0,["加算",adds.join("\n")]);
     if(k.id!=="none") rows.push(["国の公費",codeName(k)+(o.kTxt?"\n"+o.kTxt:"")]);
     if(f.id!=="none") rows.push(["福祉医療",codeName(f)+(city==="other"?"":"（"+CITY[city]+"）")+(o.fTxt?"\n"+o.fTxt:"")]);
-    if(o.isIryo) rows.push(["訪問＋お薬代（ひと月）",o.visitTxt]);
-    else{rows.push(["訪問のご負担（ひと月・介護保険）",o.visitTxt]);rows.push(["お薬代（ひと月・医療保険）",o.drugTxt]);}
+    const emLine=o.emOn?"在宅患者緊急訪問薬剤管理指導料"+(st.emType===1?"1":"2")+"（"+fmt(o.emPts)+"点）× "+st.em+"回\n"+(o.isIryo?"":"医療保険 "+o.er+"割 ")+fmt(o.E0)+" 円":"";
+    if(o.emOn) rows.push(["臨時の訪問（医療保険）",emLine]);
+    if(o.isIryo) rows.push([o.emOn?"訪問・臨時の訪問・お薬代（ひと月）":"訪問＋お薬代（ひと月）",o.visitTxt]);
+    else{rows.push(["訪問のご負担（ひと月・介護保険）",o.visitTxt]);rows.push([o.emOn?"臨時の訪問＋お薬代（ひと月・医療保険）":"お薬代（ひと月・医療保険）",o.drugTxt]);}
     const tot=fmt(o.main)+" 円"+(o.plus?" ＋ お薬代":"");
     sheetData={title,name:$("patient").value.trim(),date:d.getFullYear()+"年"+(d.getMonth()+1)+"月"+d.getDate()+"日",rows,total:tot,sub:o.maxTxt,
       notes:["この金額は概算です。実際の請求額は端数処理等により異なる場合があります。",
         o.plus?"お薬代（調剤料・薬剤料など）は処方内容により変わり、医療保険で別途かかります。":"お薬代は処方内容により変わります。",
         "訪問回数は医師の指示や体調により変わることがあります（原則 月4回まで）。",
+        o.emOn?"臨時の訪問の回数は見込みです。実際に訪問した回数で計算します。"
+          :"急な体調の変化や主治医以外の医師の指示で臨時に訪問した場合は、医療保険の「在宅患者緊急訪問薬剤管理指導料」（1回 "+fmt(cfg.e2)+"点または"+fmt(cfg.e1)+"点、1割負担で "+fmt(cfg.e2)+"円または"+fmt(cfg.e1)+"円）が、お薬代と一緒にかかります。",
         "公費・福祉医療の上限額や負担額は、受給者証の内容が優先されます。福祉医療は介護保険の費用には使えません。"],
-      pharmacy:cfg.pharmacy};
+      store:STORE(),pharmacist:$("pharmacist").value.trim()};
     $("sheet").innerHTML='<h2>訪問薬剤管理（'+esc(title)+'）ご利用料金の目安</h2>'+
       '<div class="meta"><div><span class="nm">'+(esc(sheetData.name)||"&nbsp;")+'</span> 様</div><div>作成日：'+sheetData.date+'</div></div>'+
       '<table>'+rows.map(([a,b])=>'<tr><th>'+esc(a)+'</th><td>'+esc(b).replace(/\n/g,"<br>")+'</td></tr>').join("")+'</table>'+
       '<div class="tot"><div>ひと月のお支払いの目安</div><div class="t2">'+esc(tot)+'</div>'+(sheetData.sub?'<div>'+esc(sheetData.sub)+'</div>':"")+'</div>'+
       '<ul>'+sheetData.notes.map(n=>'<li>'+esc(n)+'</li>').join("")+'</ul>'+
-      '<div class="foot"><span>'+esc(cfg.pharmacy)+'</span><span>担当薬剤師：＿＿＿＿＿＿＿＿</span></div>';
+      '<div class="foot"><span><b>'+esc(sheetData.store.name)+'</b><br>'+esc(sheetData.store.zip+" "+sheetData.store.addr)+'<br>TEL '+esc(sheetData.store.tel)+'</span><span style="align-self:flex-end">担当薬剤師：'+(esc(sheetData.pharmacist)||"＿＿＿＿＿＿＿＿")+'</span></div>';
   }
 
   function wrapText(ctx,text,maxW){
@@ -708,8 +782,10 @@ table.br td small{display:block;font-weight:400;color:var(--muted);font-size:.75
     x.font="400 26px "+G;x.fillText("ひと月のお支払いの目安",W/2,y+18);x.font="700 52px "+R;x.fillText(s.total,W/2,y+54);
     if(s.sub){x.font="400 24px "+G;x.fillText(s.sub,W/2,y+128);}x.textAlign="left";y+=bh+30;
     x.font="400 22px "+G;s.notes.forEach(n=>{wrapText(x,"・"+n,W-2*M).forEach(l=>{x.fillText(l,M,y);y+=32;});});
-    x.fillStyle="#888";x.fillRect(M,H-M-50,W-2*M,2);x.fillStyle="#111";x.font="400 24px "+G;x.fillText(s.pharmacy||"",M,H-M-34);
-    x.textAlign="right";x.fillText("担当薬剤師：＿＿＿＿＿＿＿",W-M,H-M-34);
+    const fy=H-M-120;x.fillStyle="#888";x.fillRect(M,fy,W-2*M,2);x.fillStyle="#111";x.textAlign="left";
+    x.font="700 26px "+G;x.fillText(s.store.name,M,fy+16);
+    x.font="400 22px "+G;x.fillText(s.store.zip+" "+s.store.addr,M,fy+52);x.fillText("TEL "+s.store.tel,M,fy+84);
+    x.textAlign="right";x.font="400 24px "+G;x.fillText("担当薬剤師："+(s.pharmacist||"＿＿＿＿＿＿＿"),W-M,fy+82);
     $("sheetImg").src=c.toDataURL("image/png");$("modal").hidden=false;
   }
 
@@ -743,6 +819,11 @@ table.br td small{display:block;font-weight:400;color:var(--muted);font-size:.75
     else render();
   });
   $("f").addEventListener("submit",e=>e.preventDefault());
+  $("emOn").addEventListener("change",render);
+  $("emMinus").addEventListener("click",()=>{st.em=Math.max(1,st.em-1);render();});
+  $("emPlus").addEventListener("click",()=>{st.em=Math.min(8,st.em+1);render();});
+  $("store").addEventListener("change",()=>{saveStaff();render();});
+  $("pharmacist").addEventListener("input",()=>{saveStaff();render();});
   $("mayaku").addEventListener("change",()=>{if($("mayaku").checked)$("jizoku").checked=false;render();});
   $("jizoku").addEventListener("change",()=>{if($("jizoku").checked)$("mayaku").checked=false;render();});
   $("f").addEventListener("click",e=>{
@@ -753,6 +834,8 @@ table.br td small{display:block;font-weight:400;color:var(--muted);font-size:.75
       if(grp==="fper"){st.fper=+v;if($("fperIn"))$("fperIn").value=v;}
       if(grp==="flimit")st.flimit=+v;
       if(grp==="fcap")st.fcap=+v;
+      if(grp==="emType")st.emType=+v;
+      if(grp==="emRate")st.emRate=+v;
       b.parentElement.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));
       render();return;}
     const btn=e.target.closest("button"),id=btn&&btn.id;

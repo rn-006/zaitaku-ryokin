@@ -1,5 +1,5 @@
 // 版を上げると、各端末が次回起動時に新しい内容へ更新されます
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE = "houmon-ryokin-" + VERSION;
 const CORE = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 
